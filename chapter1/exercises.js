@@ -133,14 +133,12 @@ class Interpreter {
 
 async function main() {
     while (true) {
-        let text;
         try {
             let text = await readLine()
             let interpreter = new Interpreter(text)
             let result = interpreter.expr()
 
             console.log(`${text} = ${result}`)
-            break
         } catch (e) {
             console.error(e)
             close()

@@ -6,14 +6,6 @@ class Token {
         this.type = type
         this.value = value
     }
-    __str__() {
-        // String representation of the class instance
-        return `Token(${this.type}, ${this.value})`
-    }
-    __repr__() {
-        // return str
-        return this.__str__()
-    }
 }
 
 class Interpreter {
@@ -22,7 +14,6 @@ class Interpreter {
         this.pos = 0
         this.text = text
         this.current_token = {}
-        // this.token = new Token()
     }
     errors() {
         throw new Error("parsing error")
@@ -89,7 +80,6 @@ class Interpreter {
 
 async function main() {
     while (true) {
-        let text;
         try {
             let text = await readLine()
             let interpreter = new Interpreter(text)
