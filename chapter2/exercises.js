@@ -56,21 +56,17 @@ class Interpreter {
             } else if (this.current_char == " ") {
                 this.advance()
             } else if (this.current_char == '+') {
-                let token = new Token(PLUS, this.current_char)
                 this.advance()
-                return token
+                return new Token(PLUS, this.current_char)
             } else if (this.current_char == '-') {
-                let token = new Token(MINUS, this.current_char)
                 this.advance()
-                return token
+                return new Token(MINUS, this.current_char)
             } else if (this.current_char == '*') {
-                let token = new Token(MUTIPLE, this.current_char)
                 this.advance()
-                return token
+                return new Token(MUTIPLE, this.current_char)
             } else if (this.current_char == '/') {
-                let token = new Token(DIVIDE, this.current_char)
                 this.advance()
-                return token
+                return new Token(DIVIDE, this.current_char)
             } else {
                 this.errors()
             }
