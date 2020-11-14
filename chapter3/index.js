@@ -5,7 +5,7 @@
  */
 
 const { readLine, close } = require('../utils/readline')
-const [INTEGER, EOF, PLUS, MINUS, MUTIPLE, DIVIDE] = ['INTEGER', 'EOF', 'PLUS', 'MINUS', 'MUTIPLE', 'DIVIDE']
+const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE] = ['INTEGER', 'EOF', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE']
 
 class Token {
     // 初始化 type， value
@@ -59,7 +59,7 @@ class Interpreter {
                 return new Token(MINUS, '-')
             } else if (this.current_char == '*') {
                 this.advance()
-                return new Token(MUTIPLE, '*')
+                return new Token(MULTIPLY, '*')
             } else if (this.current_char == '/') {
                 this.advance()
                 return new Token(DIVIDE, '/')
