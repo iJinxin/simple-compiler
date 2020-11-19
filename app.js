@@ -1,3 +1,4 @@
 const chapter3_main = require('./chapter3/index')
+const chapter4_main = require('./chapter4/index')
 
-chapter3_main()
+chapter4_main()

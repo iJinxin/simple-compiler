@@ -1,7 +1,6 @@
 /**
- * 1.乘法
- * 2.除法
- * 3.任意数量加减法
+ * 1.对算术表达式做词法分析
+ * 2.能够解析任意合法的加减乘除组合
  */
 
 const { readLine, close } = require('../utils/readline')
@@ -15,16 +14,14 @@ class Token {
     }
 }
 
-class Interpreter {
+class Lexer {
     constructor(text) {
-        // pos, text, currentToken
-        this.pos = 0
         this.text = text
-        this.current_char = this.text.charAt(0)
-        this.current_token = null
+        this.pos = 0
+        this.current_char = text.charAt(0)
     }
-    errors() {
-        throw new Error("parsing error")
+    error() {
+        throw new Error("character error")
     }
     advance() {
         // pos指针前移，更新current_char
@@ -34,6 +31,9 @@ class Interpreter {
         } else {
             this.current_char = this.text.charAt(this.pos)
         }
+    }
+    skip_whitespace() {
+
     }
     integer() {
         // 连续数字拼接，返回完整整数
@@ -49,7 +49,7 @@ class Interpreter {
         while (this.current_char != null) {
             if (this.isNumber(this.current_char)) {
                 return new Token(INTEGER, this.integer())
-            } else if (this.current_char ==  ' ') {
+            } else if (this.current_char == ' ') {
                 this.advance()
             } else if (this.current_char == '+') {
                 this.advance()
@@ -64,52 +64,50 @@ class Interpreter {
                 this.advance()
                 return new Token(DIVIDE, '/')
             } else {
-                this.errors()
+                this.error()
             }
         }
         return new Token(EOF, null)
     }
-    eat(token_type) {
-        if (this.current_token.type == token_type) {
-            this.current_token = this.get_next_token()
-        } else {
-            this.errors()
-        }
-    }
-    // 处理数字，如不是数字则抛错
-    term() {
-        let token = this.current_token
-        this.eat(INTEGER)
-
-        return token.value
-    }
-    expr() {
-        // set current token to the first token taken from the input
-        this.current_token = this.get_next_token()
-
-        // 首次get_next_token，必须是数字
-        let result = this.term()
-
-        // INTEGER后的token需要是运算符，运算符后的token需要为INTEGER
-        while ([PLUS, MINUS].includes(this.current_token.type)) {
-            let token = this.current_token
-            if (token.type == PLUS) {
-                this.eat(PLUS)
-                result += this.term()
-            } else if (token.type == MINUS) {
-                this.eat(MINUS)
-                result -= this.term()
-            }
-        }
-        // 原文在这里有bug，例如’1+2 3‘应该报语法错误，但实际会输出3
-        if (this.current_token.type != EOF) {
-            this.errors()
-        }
-        return result
-    }
     isNumber(char) {
         let reg = /\d/g
         return reg.test(char)
+    }
+}
+
+class Parser {
+    constructor(lexer) {
+        this.lexer = lexer
+        this.current_token = lexer.get_next_token()
+    }
+    error() {
+        throw new Error("syntax error")
+    }
+    eat(token_type) {
+        if (this.current_token.type === token_type) {
+            this.current_token = this.lexer.get_next_token()
+        } else {
+            this.error()
+        }
+    }
+    factor() {
+        this.eat(INTEGER)
+    }
+    expr() {
+        this.factor()
+
+        while([MULTIPLY, DIVIDE].includes(this.current_token.type)) {
+            if (this.current_token.type === MULTIPLY) {
+                this.eat(MULTIPLY)
+                this.factor()
+            } else {
+                this.eat(DIVIDE)
+                this.factor()
+            }
+        }
+    }
+    parse() {
+        this.expr()
     }
 }
 
@@ -118,10 +116,12 @@ async function main() {
         let text;
         try {
             let text = await readLine()
-            let interpreter = new Interpreter(text)
-            let result = interpreter.expr()
+            let lexer = new Lexer(text)
+            let parser = new Parser(lexer)
 
-            console.log(`${text} = ${result}`)
+            parser.parse()
+
+            // console.log(`${text} = ${result}`)
             // close()
             // break
         } catch (e) {
