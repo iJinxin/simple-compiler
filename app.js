@@ -3,5 +3,6 @@ const chapter4_main = require('./chapter4/index')
 const chapter5_main = require('./chapter5/index')
 const chapter5_ex = require('./chapter5/exercise')
 const chapter6_main = require('./chapter6/index')
+const chapter7_main = require('./chapter7_AST/index')
 
-chapter6_main()
+chapter7_main()

@@ -1,7 +1,19 @@
 /**
  * 
  */
-class Token{
+
+ const { readLine, close } = require('../utils/readline')
+const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE, L_PAREN, R_PAREN] = [
+    "INTEGER",
+    "EOF",
+    "PLUS",
+    "MINUS",
+    "MULTIPLY",
+    "DIVIDE",
+    "L_PAREN",
+    "R_PAREN",
+];
+class Token {
     constructor(type, value) {
         this.type = type
         this.value = value
@@ -79,6 +91,7 @@ class BinOp {
     constructor(left, op, right) {
         this.left = left
         this.token = op
+        this.op = op
         this.right = right
     }
 }
@@ -100,7 +113,7 @@ class Parser {
         throw new Error("parse error!")
     }
     eat(token_type) {
-        if (this.current_char.type === token_type) {
+        if (this.current_token.type === token_type) {
             this.current_token = this.lexer.get_next_token()
         } else {
             this.error()
@@ -142,10 +155,64 @@ class Parser {
     }
 }
 
-class NodeVisitor{
-    
+class NodeVisitor {
+    visit_BinOp(node) { }
+    visit_Num(node) { }
+    visit(node) {
+        if (node.token.type === INTEGER) {
+            return this.visit_Num(node)
+        } else {
+            return this.visit_BinOp(node)
+        }
+    }
 }
 
-class Interpreter {
-
+class Interpreter extends NodeVisitor {
+    constructor(parser) {
+        super()
+        this.parser = parser
+    }
+    visit_BinOp(node) {
+        if (node.op.type === PLUS) {
+            return this.visit(node.left) + this.visit(node.right)
+        } else if (node.op.type === MINUS) {
+            return this.visit(node.left) - this.visit(node.right)
+        } else if (node.op.type === MULTIPLY) {
+            return this.visit(node.left) * this.visit(node.right)
+        } else {
+            return this.visit(node.left) / this.visit(node.right)
+        }
+    }
+    visit_Num(node) {
+        return node.value
+    }
+    interpreter() {
+        let root = this.parser.expr()
+        return this.visit(root)
+    }
 }
+
+async function main() {
+    while (true) {
+        let text;
+        try {
+            let text = await readLine();
+            let lexer = new Lexer(text);
+            let parser = new Parser(lexer);
+
+            let interpreter = new Interpreter(parser)
+
+            let result = interpreter.interpreter()
+
+            console.log(`${text} = ${result}`);
+            // console.log(result);
+            // break
+        } catch (e) {
+            console.error(e);
+            close();
+            break;
+        }
+    }
+    return;
+}
+module.exports = main;
