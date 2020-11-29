@@ -1,4 +1,3 @@
-import Lexer from './lexer'
 const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE, L_PAREN, R_PAREN, ASSIGN, DOT, BEGIN, END, SEMI, ID] = [
     "INTEGER",
     "EOF",
@@ -26,17 +25,22 @@ class BinOp {
 }
 // 一元运算符
 class UnaryOp {
-    constructor (op, expr) {
+    constructor(op, expr) {
         this.token = this.op = op
         this.expr = expr
     }
 }
-
 class Num {
     // 叶子结点 INTEGER
     constructor(token) {
         this.token = token
         this.value = token.value
+    }
+}
+
+class Compound {
+    constructor() {
+        this.children = []
     }
 }
 
@@ -83,7 +87,12 @@ class Parser {
         let nodes = this.statement_list()
         this.eat(END)
 
+        let root = new Compound()
+        for (let node of nodes) {
+            root.children.push(node)
+        }
 
+        return root
     }
     statement_list() {
         let node = this.statement()
@@ -110,7 +119,7 @@ class Parser {
     }
     assignment_statement() {
         let left = this.variable()
-        let op = token = this.current_token
+        let token = this.current_token
         this.eat(ASSIGN)
         let right = this.expr()
 
@@ -175,3 +184,5 @@ class Parser {
         return node
     }
 }
+
+module.exports = Parser

@@ -5,8 +5,9 @@ const chapter5_ex = require('./chapter5/exercise')
 const chapter6_main = require('./chapter6/index')
 const chapter7_main = require('./chapter7_AST/index')
 const chapter8_main = require('./chapter8/index')
+const chapter9_main = require('./chapter9/index')
 
-chapter8_main()
+chapter9_main()
 
 function test() {
     let a = 2

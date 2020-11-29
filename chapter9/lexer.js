@@ -1,4 +1,4 @@
-const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE, L_PAREN, R_PAREN, ASSIGN, DOT] = [
+const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE, L_PAREN, R_PAREN, ASSIGN, DOT, ID, SEMI] = [
     "INTEGER",
     "EOF",
     "PLUS",
@@ -8,7 +8,9 @@ const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE, L_PAREN, R_PAREN, ASSIGN, DO
     "L_PAREN",
     "R_PAREN",
     "ASSIGN",
-    "DOT"
+    "DOT",
+    "ID",
+    "SEMI"
 ];
 
 class Token {
@@ -65,14 +67,14 @@ class Lexer {
             this.advance()
         }
         if (RESERVED_KEYWORDS.has(result)) {
-            return result
+            return RESERVED_KEYWORDS.get(result)
         } else {
             return new Token(ID, result)
         }
     }
     get_next_token() {
         while (this.current_char !== null) {
-            if (this.current_char === ' ') {
+            if (this.current_char === ' ' || this.current_char === '\n') {
                 this.advance()
             } else if (this.isStr(this.current_char)) {
                 return this._id()
@@ -82,6 +84,9 @@ class Lexer {
                 this.advance()
                 this.advance()
                 return new Token(ASSIGN, ':=')
+            } else if (this.current_char === ';') {
+                this.advance()
+                return new Token(SEMI, ';')
             } else if (this.current_char === '+') {
                 this.advance()
                 return new Token(PLUS, '+')
@@ -123,4 +128,5 @@ class Lexer {
     }
 }
 
-export default Lexer
+// export default Lexer
+module.exports = Lexer
