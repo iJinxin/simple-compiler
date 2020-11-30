@@ -119,11 +119,11 @@ class Lexer {
         return reg.test(char)
     }
     isVar(char) {
-        let reg = /[0-9a-zA-Z]/g
+        let reg = /[_0-9a-zA-Z]/g
         return reg.test(char)
     }
     isStr(char) {
-        let reg = /[a-zA-Z]/g
+        let reg = /[_a-zA-Z]/g
         return reg.test(char)
     }
 }

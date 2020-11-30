@@ -67,14 +67,14 @@ class Parser {
         this.lexer = lexer
         this.current_token = lexer.get_next_token()
     }
-    error() {
-        throw new Error("parser error")
+    error(type) {
+        throw new Error("parser error:" + type)
     }
     eat(token_type) {
         if (this.current_token.type === token_type) {
             this.current_token = this.lexer.get_next_token()
         } else {
-            this.error()
+            this.error('eat')
         }
     }
     program() {
@@ -103,7 +103,7 @@ class Parser {
         }
 
         if (this.current_token.type === ID) {
-            this.error()
+            this.error('statement_list')
         }
 
         return result
@@ -178,7 +178,7 @@ class Parser {
     init() {
         let node = this.program()
         if (this.current_token.type !== EOF) {
-            this.error()
+            this.error('init')
         }
 
         return node
