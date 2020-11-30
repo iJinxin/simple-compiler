@@ -33,7 +33,9 @@ async function main() {
 
         let result = interpreter.interpreter()
 
-        console.log(`'result:' = ${result}`);
+        console.log(interpreter.GLOBAL_SCOPE)
+
+        // console.log(`'result:' = ${result}`);
 
     })
 
