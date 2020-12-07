@@ -1,26 +1,42 @@
-const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE, L_PAREN, R_PAREN, ASSIGN, DOT, ID, SEMI] = [
-    "INTEGER",
-    "EOF",
-    "PLUS",
-    "MINUS",
-    "MULTIPLY",
-    "DIVIDE",
-    "L_PAREN",
-    "R_PAREN",
-    "ASSIGN",
-    "DOT",
-    "ID",
-    "SEMI"
-];
+const {
+    PROGRAM,
+    BEGIN,
+    END,
+    DOT,
+    VAR,
+    COLON,
+    COMMA,
+    INTEGER,
+    REAL,
+    INTEGER_CONST,
+    REAL_CONST,
+    INTEGER_DIV,
+    FLOAT_DIV,
+    EOF,
+    PLUS,
+    MINUS,
+    MUL,
+    DIV,
+    L_PAREN,
+    R_PAREN,
+    ID,
+    SEMI,
+    ASSIGN
+} = require('./var')
 
 class Token {
-    constructor (type, value) {
+    constructor(type, value) {
         this.type = type
         this.value = value
     }
 }
 
 const RESERVED_KEYWORDS = new Map([
+    ['PROGRAM', new Token('PROGRAM', 'PROGRAM')],
+    ['VAR', new Token('VAR', 'VAR')],
+    ['DIV', new Token('INTEGER_DIV', 'DIV')],
+    ['INTEGER', new Token('INTEGER', 'INTEGER')],
+    ['REAL', new Token('REAL', 'REAL')],
     ['BEGIN', new Token('BEGIN', 'BEGIN')],
     ['END', new Token('END', 'END')]
 ])
@@ -31,8 +47,8 @@ class Lexer {
         this.pos = 0
         this.current_char = text.charAt(0)
     }
-    error() {
-        throw new Error('letex error')
+    error(char) {
+        throw new Error('letex error: ' + char)
     }
     advance() {
         this.pos = this.pos + 1
@@ -50,14 +66,6 @@ class Lexer {
             return this.text[peek_pos]
         }
     }
-    integer() {
-        let result = ''
-        while (this.current_char !== null && this.isNumber(this.current_char)) {
-            result += this.current_char
-            this.advance()
-        }
-        return result
-    }
     // 识别变量和标识符
     // 字母或下划线开头，数字字母下划线组成
     _id() {
@@ -72,18 +80,56 @@ class Lexer {
             return new Token(ID, result)
         }
     }
+    // {} 注释快
+    skip_comment() {
+        while (this.current_char != '}') {
+            this.advance()
+        }
+        this.advance()
+    }
+    // 处理整数和浮点数
+    number() {
+        let result = ''
+        while (this.current_char != null && this.isNumber(this.current_char)) {
+            result += this.current_char
+            this.advance()
+        }
+
+        // 浮点数判断
+        if (this.current_char == '.') {
+            result += this.current_char
+            this.advance()
+            while (this.current_char != null && this.isNumber(this.current_char)) {
+                result += this.current_char
+                this.advance()
+            }
+            return new Token(REAL_CONST, parseFloat(result))
+        } else {
+            return new Token(INTEGER_CONST, parseInt(result))
+        }
+    }
     get_next_token() {
         while (this.current_char !== null) {
             if (this.current_char === ' ' || this.current_char === '\n') {
                 this.advance()
-            } else if (this.isStr(this.current_char)) {
+            } else if (this.current_char === '{') {
+                this.advance()
+                this.skip_comment()
+                // continue
+            }  else if (this.isStr(this.current_char)) {
                 return this._id()
             } else if (this.isNumber(this.current_char)) {
-                return new Token(INTEGER, this.integer())
+                return this.number()
             } else if (this.current_char === ':' && this.peek() === '=') {
                 this.advance()
                 this.advance()
                 return new Token(ASSIGN, ':=')
+            } else if (this.current_char === ',') {
+                this.advance()
+                return new Token(COMMA, ',')
+            } else if (this.current_char === ':') {
+                this.advance()
+                return new Token(COLON, ':')
             } else if (this.current_char === ';') {
                 this.advance()
                 return new Token(SEMI, ';')
@@ -95,10 +141,10 @@ class Lexer {
                 return new Token(MINUS, '-')
             } else if (this.current_char === '*') {
                 this.advance()
-                return new Token(MULTIPLY, '*')
+                return new Token(MUL, '*')
             } else if (this.current_char === '/') {
                 this.advance()
-                return new Token(DIVIDE, '/')
+                return new Token(FLOAT_DIV, '/')
             } else if (this.current_char === '(') {
                 this.advance()
                 return new Token(L_PAREN, '(')
@@ -109,7 +155,7 @@ class Lexer {
                 this.advance()
                 return new Token(DOT, '.')
             } else {
-                this.error()
+                this.error(this.current_char)
             }
         }
         return new Token(EOF, null)

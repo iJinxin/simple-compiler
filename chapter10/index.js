@@ -18,7 +18,7 @@ async function main() {
     // let text = await readLine();
     // let data = fs.readFileSync(path.resolve(__dirname, 'a.txt'))
 
-    fs.readFile(resolve('a.txt'), 'utf-8', (err, data) => {
+    fs.readFile(resolve('test.txt'), 'utf-8', (err, data) => {
         if (err) {
             throw err
         }

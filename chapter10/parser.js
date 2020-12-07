@@ -1,19 +1,60 @@
-const [INTEGER, EOF, PLUS, MINUS, MULTIPLY, DIVIDE, L_PAREN, R_PAREN, ASSIGN, DOT, BEGIN, END, SEMI, ID] = [
-    "INTEGER",
-    "EOF",
-    "PLUS",
-    "MINUS",
-    "MULTIPLY",
-    "DIVIDE",
-    "L_PAREN",
-    "R_PAREN",
-    "ASSIGN",
-    "DOT",
-    "BEGIN",
-    "END",
-    "SEMI",
-    "ID"
-];
+const {
+    PROGRAM,
+    BEGIN,
+    END,
+    DOT,
+    VAR,
+    COLON,
+    COMMA,
+    INTEGER,
+    REAL,
+    INTEGER_CONST,
+    REAL_CONST,
+    INTEGER_DIV,
+    FLOAT_DIV,
+    EOF,
+    PLUS,
+    MINUS,
+    MUL,
+    DIV,
+    L_PAREN,
+    R_PAREN,
+    ID,
+    SEMI,
+    ASSIGN
+} = require('./var')
+
+// Program AST node represents a program and will be our root node
+class Program{
+    constructor(name, block) {
+        this.name = name
+        this.block = block
+    }
+}
+
+//  Block AST node holds declarations and a compound statement
+class Block {
+    constructor (declarations, compound_statement) {
+        this.declarations = declarations
+        this.compound_statement = compound_statement
+    }
+}
+
+// 变量类型
+class Type {
+    constructor(token, value) {
+        this.token = token
+        this.value = token.value
+    }
+}
+
+// The VarDecl AST node represents a variable declaration. It holds a variable node and a type node
+class VarDecl {
+    constructor(var_node, type_node) {
+        this.var_node = var_node
+        this.type_node = type_node
+    }
+}
 
 // 二元运算符
 class BinOp {
@@ -77,10 +118,81 @@ class Parser {
             this.error('eat')
         }
     }
+    // 程序初始化
+    // 以 PROGRAM VAR ; 三元素开头
+    // block程序主体
+    // 以DOT结尾
     program() {
-        let node = this.compound_statement()
+        this.eat(PROGRAM)
+        let var_node = this.variable()
+        let prog_name = var_node.value
+        this.eat(SEMI)
+
+        let block_node = this.block()
+        let program = new Program(prog_name, block_node)
         this.eat(DOT)
-        return node
+
+        return program
+    }
+    // 程序主体
+    // 1.变量声明
+    // 2.表达式
+    block() {
+        let declaration_nodes = this.declarations()
+        let compound_statement_node = this.compound_statement()
+
+        return new Block(declaration_nodes, compound_statement_node)
+    }
+    // 声明
+    // 1.变量声明
+    // 2.类型检查
+    declarations() {
+        let declarations = []
+        if (this.current_token.type === VAR) {
+            this.eat(VAR)
+            while (this.current_token.type === ID) {
+                let varDecl = this.variable_declaration()
+                declarations = declarations.concat(varDecl)
+                this.eat(SEMI)
+            }
+        }
+        return declarations
+    }
+    // 变量声明-声明一行变量
+    variable_declaration() {
+        let var_nodes = [new Var(this.current_token)]
+        this.eat(ID)
+
+        // 判断是否多变量使用‘,’隔开
+        while (this.current_token.type === COMMA) {
+            this.eat(COMMA)
+            var_nodes.push(new Var(this.current_token))
+            this.eat(ID)
+        }
+
+        this.eat(COLON)
+
+        // 判断本行变量类型
+        let type_node = this.type_spec()
+
+        let var_declarations = []
+
+        for (let i=0;i<var_nodes.length;i++) {
+            var_declarations.push(new VarDecl(var_nodes[i], type_node))
+        }
+
+        return var_declarations
+    }
+    // 类型检查 INTEGER or REAL
+    type_spec() {
+        let token = this.current_token
+        if (token.type === INTEGER) {
+            this.eat(INTEGER)
+        } else {
+            this.eat(REAL)
+        }
+
+        return new Type(token)
     }
     compound_statement() {
         this.eat(BEGIN)
@@ -143,7 +255,7 @@ class Parser {
     }
     term() {
         let node = this.factor()
-        while ([MULTIPLY, DIVIDE].includes(this.current_token.type)) {
+        while ([MUL, INTEGER_DIV, FLOAT_DIV].includes(this.current_token.type)) {
             this.eat(this.current_token.type)
             node = new BinOp(node, this.current_token, this.factor())
         }
@@ -162,9 +274,11 @@ class Parser {
         } else if (token.type === MINUS) {
             this.eat(MINUS)
             return new UnaryOp(token, this.factor())
-        } else if (token.type === INTEGER) {
-            this.eat(INTEGER)
+        } else if (token.type === INTEGER_CONST) {
+            this.eat(INTEGER_CONST)
             return new Num(token)
+        } else if (token.type === REAL_CONST) {
+            this.eat(REAL_CONST)
         } else if (token.type === L_PAREN) {
             this.eat(L_PAREN)
             let node = this.expr()
